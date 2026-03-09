@@ -182,25 +182,18 @@ class TestBooksCollector:
             "Книга не должна добавляться в избранное повторно"
     
     def test_delete_book_from_favorites(self, collector):
-        """
-        Проверка удаления книги из избранного
-        """
-        book_name = 'Книга для удаления'
-        
-        # Добавляем книгу в коллекцию и в избранное
-        collector.add_new_book(book_name)
-        collector.add_book_in_favorites(book_name)
-        
-        # Проверяем, что книга в избранном
-        assert book_name in collector.get_list_of_favorites_books(), \
-            "Книга должна быть в избранном перед удалением"
-        
-        # Удаляем из избранного
-        collector.delete_book_from_favorites(book_name)
-        
-        # Проверяем, что книги нет в избранном
-        assert book_name not in collector.get_list_of_favorites_books(), \
-            "Книга должна быть удалена из избранного"
+    """Проверка удаления книги из избранного"""
+    book_name = 'Книга для удаления'
+    
+    # Подготовка данных
+    collector.add_new_book(book_name)
+    collector.add_book_in_favorites(book_name)
+    
+    # Действие
+    collector.delete_book_from_favorites(book_name)
+    
+    # Проверка
+    assert book_name not in collector.get_list_of_favorites_books()
     
     def test_delete_nonexistent_book_from_favorites(self, collector):
         """Проверка удаления несуществующей книги из избранного"""
