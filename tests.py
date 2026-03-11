@@ -139,20 +139,20 @@ class TestBooksCollector:
         
         favorites = collector.get_list_of_favorites_books()
         assert len(favorites) == 1
-            
-                def test_delete_book_from_favorites(self, collector):
-            """Проверка удаления книги из избранного"""
-            book_name = 'Книга для удаления'
-            
-            # Подготовка данных: добавляем книгу в коллекцию и в избранное
-            collector.add_new_book(book_name)
-            collector.add_book_in_favorites(book_name)
-            
-            # Действие: удаляем из избранного
-            collector.delete_book_from_favorites(book_name)
-            
-            # Проверка: книга должна отсутствовать в избранном
-            assert book_name not in collector.get_list_of_favorites_books()
+
+    def test_delete_book_from_favorites(self, collector):
+        """Проверка удаления книги из избранного"""
+        book_name = 'Книга для удаления'
+        
+        # Подготовка данных: добавляем книгу в коллекцию и в избранное
+        collector.add_new_book(book_name)
+        collector.add_book_in_favorites(book_name)
+        
+        # Действие: удаляем из избранного
+        collector.delete_book_from_favorites(book_name)
+        
+        # Проверка: книга должна отсутствовать в избранном
+        assert book_name not in collector.get_list_of_favorites_books()
 
     def test_delete_nonexistent_book_from_favorites(self, collector):
         """Проверка удаления несуществующей книги из избранного"""
