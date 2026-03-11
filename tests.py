@@ -78,7 +78,7 @@ class TestBooksCollector:
         collector.add_new_book('Книга 3')
         
         collector.set_book_genre('Книга 1', 'Фантастика')
-        collector.set_book_genre('Книга 2', 'Детектив')
+        collector.set_book_genre('Книга 2', 'Детективы')
         collector.set_book_genre('Книга 3', 'Фантастика')
         
         fantastic_books = collector.get_books_with_specific_genre('Фантастика')
@@ -139,6 +139,7 @@ class TestBooksCollector:
         
         favorites = collector.get_list_of_favorites_books()
         assert len(favorites) == 1
+        assert book_name in favorites
 
     def test_delete_book_from_favorites(self, collector):
         """Проверка удаления книги из избранного"""
@@ -152,7 +153,8 @@ class TestBooksCollector:
         collector.delete_book_from_favorites(book_name)
         
         # Проверка: книга должна отсутствовать в избранном
-        assert book_name not in collector.get_list_of_favorites_books()
+        favorites = collector.get_list_of_favorites_books()
+        assert book_name not in favorites
 
     def test_delete_nonexistent_book_from_favorites(self, collector):
         """Проверка удаления несуществующей книги из избранного"""
