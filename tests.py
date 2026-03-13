@@ -11,11 +11,6 @@ class TestBooksCollector:
         """Фикстура возвращает новый экземпляр коллекции для каждого теста"""
         return BooksCollector()
 
-    @pytest.fixture
-    def valid_genres(self):
-        """Фикстура со списком допустимых жанров"""
-        return ['Фантастика', 'Ужасы', 'Детективы', 'Мультфильмы', 'Комедии']
-
     # ===== ТЕСТЫ МЕТОДА add_new_book =====
     @pytest.mark.parametrize('invalid_name', [
         '',                          # пустая строка (0 символов)
@@ -26,24 +21,23 @@ class TestBooksCollector:
         """Проверка, что книга НЕ добавляется при недопустимой длине имени"""
         collector.add_new_book(invalid_name)
         
-        # Прямой доступ к словарю books_genre для проверки
+        # Прямой доступ к словарю books_genre
         assert invalid_name not in collector.books_genre
 
     @pytest.mark.parametrize('valid_name', [
         'A',                          # 1 символ (минимум)
         'A' * 40,                     # 40 символов (максимум)
-        'Нормальное название книги',  # средняя длина
-        'Война и мир',                # конкретное название
-        '1984',                       # название с цифрами
-        'Книга!@#'                    # название со спецсимволами
+        'Нормальное название книги',
+        'Война и мир',
+        '1984',
+        'Книга!@#'
     ])
     def test_add_new_book_with_valid_name_length(self, collector, valid_name):
         """Проверка, что книга добавляется при допустимой длине имени"""
         collector.add_new_book(valid_name)
         
-        # Прямой доступ к словарю books_genre для проверки
+        # Прямой доступ к словарю
         assert valid_name in collector.books_genre
-        # Проверяем, что у новой книги пустой жанр
         assert collector.books_genre[valid_name] == ''
 
     def test_add_new_book_twice(self, collector):
@@ -53,7 +47,7 @@ class TestBooksCollector:
         collector.add_new_book(book_name)
         collector.add_new_book(book_name)
         
-        # Проверяем через прямой доступ к словарю
+        # Проверяем через прямой доступ
         assert len(collector.books_genre) == 1
         assert book_name in collector.books_genre
 
@@ -66,7 +60,7 @@ class TestBooksCollector:
         collector.add_new_book(book_name)
         collector.set_book_genre(book_name, genre)
         
-        # Прямая проверка словаря
+        # Проверяем через прямой доступ к словарю, а не через get_book_genre
         assert collector.books_genre[book_name] == genre
 
     def test_set_book_genre_for_nonexistent_book(self, collector):
@@ -74,11 +68,13 @@ class TestBooksCollector:
         book_name = 'Несуществующая книга'
         genre = 'Фантастика'
         
-        # Пытаемся установить жанр для книги, которой нет
+        # Сохраняем состояние до вызова
+        initial_state = collector.books_genre.copy()
+        
         collector.set_book_genre(book_name, genre)
         
-        # Проверяем, что словарь не изменился
-        assert book_name not in collector.books_genre
+        # Проверяем, что состояние не изменилось
+        assert collector.books_genre == initial_state
 
     def test_set_invalid_genre(self, collector):
         """Проверка, что нельзя установить несуществующий жанр"""
@@ -87,10 +83,9 @@ class TestBooksCollector:
         
         collector.add_new_book(book_name)
         
-        # Сохраняем текущий жанр (пустой)
+        # Запоминаем текущий жанр (пустой)
         current_genre = collector.books_genre[book_name]
         
-        # Пытаемся установить несуществующий жанр
         collector.set_book_genre(book_name, invalid_genre)
         
         # Проверяем, что жанр не изменился
@@ -98,28 +93,29 @@ class TestBooksCollector:
 
     # ===== ТЕСТЫ МЕТОДА get_book_genre =====
     def test_get_book_genre(self, collector):
-        """Проверка получения жанра книги"""
+        """Проверка получения жанра существующей книги"""
         book_name = 'Тестовая книга'
         genre = 'Детективы'
         
-        collector.add_new_book(book_name)
-        collector.set_book_genre(book_name, genre)
+        # Прямое заполнение словаря
+        collector.books_genre[book_name] = genre
         
-        # Сравниваем результат метода с прямым доступом
-        assert collector.get_book_genre(book_name) == collector.books_genre[book_name]
+        # Проверяем именно метод get_book_genre
+        assert collector.get_book_genre(book_name) == genre
 
     def test_get_book_genre_for_nonexistent_book(self, collector):
         """Проверка получения жанра для несуществующей книги"""
         book_name = 'Несуществующая книга'
         
-        # Метод должен вернуть None или пустую строку (зависит от реализации)
         result = collector.get_book_genre(book_name)
-        assert result is None or result == ''
+        
+        # Метод должен вернуть None (по логике класса)
+        assert result is None
 
     # ===== ТЕСТЫ МЕТОДА get_books_with_specific_genre =====
     def test_get_books_with_specific_genre(self, collector):
         """Проверка получения списка книг по конкретному жанру"""
-        # Прямое заполнение словаря (изолированная подготовка данных)
+        # Прямое заполнение словаря
         collector.books_genre = {
             'Книга 1': 'Фантастика',
             'Книга 2': 'Детективы',
@@ -129,11 +125,8 @@ class TestBooksCollector:
         
         fantastic_books = collector.get_books_with_specific_genre('Фантастика')
         
-        # Проверка результата
-        assert len(fantastic_books) == 2
-        assert 'Книга 1' in fantastic_books
-        assert 'Книга 3' in fantastic_books
-        assert 'Книга 2' not in fantastic_books
+        # Проверяем результат одним ассертом (улучшение)
+        assert fantastic_books == ['Книга 1', 'Книга 3']
 
     def test_get_books_with_specific_genre_empty_result(self, collector):
         """Проверка получения списка книг по жанру, которого нет"""
@@ -147,19 +140,24 @@ class TestBooksCollector:
         assert horror_books == []
 
     # ===== ТЕСТЫ МЕТОДА get_books_genre =====
-    def test_get_books_genre_returns_dict(self, collector):
-        """Проверка, что метод возвращает словарь"""
-        # Проверяем, что метод возвращает именно словарь, а не его копию
-        collector.books_genre = {'Книга': 'Фантастика'}
+    def test_get_books_genre_returns_correct_dict(self, collector):
+        """Проверка, что метод возвращает правильный словарь книг с жанрами"""
+        # Задаём тестовые данные
+        test_data = {
+            'Книга 1': 'Фантастика',
+            'Книга 2': 'Детективы',
+            'Книга 3': ''
+        }
+        collector.books_genre = test_data.copy()
+        
         result = collector.get_books_genre()
         
-        assert isinstance(result, dict)
-        assert result == collector.books_genre
+        # Проверяем, что возвращается именно тот словарь, который мы задали
+        assert result == test_data
 
     # ===== ТЕСТЫ МЕТОДА get_books_for_children =====
     def test_get_books_for_children(self, collector):
-        """Проверка фильтрации книг для детей (без жанров Ужасы и Детективы)"""
-        # Прямое заполнение словаря
+        """Проверка фильтрации книг для детей"""
         collector.books_genre = {
             'Детская книга': 'Мультфильмы',
             'Страшная книга': 'Ужасы',
@@ -170,26 +168,9 @@ class TestBooksCollector:
         
         children_books = collector.get_books_for_children()
         
-        assert len(children_books) == 3
-        assert 'Детская книга' in children_books
-        assert 'Фантастика' in children_books
-        assert 'Комедия' in children_books
-        assert 'Страшная книга' not in children_books
-        assert 'Детектив' not in children_books
-
-    def test_get_books_for_children_with_age_restricted_genres(self, collector, valid_genres):
-        """Проверка, что возрастные жанры не попадают в детские книги"""
-        # Проверяем все жанры из списка допустимых
-        collector.books_genre = {f'Книга {genre}': genre for genre in valid_genres}
-        
-        children_books = collector.get_books_for_children()
-        
-        # Жанры, которые должны быть исключены
-        age_restricted = ['Ужасы', 'Детективы']
-        
-        for book in children_books:
-            genre = collector.get_book_genre(book)
-            assert genre not in age_restricted
+        # Проверяем одним ассертом
+        expected_books = ['Детская книга', 'Фантастика', 'Комедия']
+        assert sorted(children_books) == sorted(expected_books)
 
     # ===== ТЕСТЫ МЕТОДОВ ДЛЯ ИЗБРАННОГО =====
     def test_add_book_in_favorites(self, collector):
@@ -200,17 +181,15 @@ class TestBooksCollector:
         collector.add_book_in_favorites(book_name)
         
         # Прямой доступ к списку favorites
-        assert book_name in collector.favorites
-        assert len(collector.favorites) == 1
+        assert collector.favorites == [book_name]
 
     def test_add_nonexistent_book_to_favorites(self, collector):
         """Проверка, что нельзя добавить в избранное книгу, которой нет в коллекции"""
         book_name = 'Несуществующая книга'
-        initial_favorites = collector.favorites.copy() if hasattr(collector, 'favorites') else []
+        initial_favorites = collector.favorites.copy()
         
         collector.add_book_in_favorites(book_name)
         
-        # Проверяем, что список избранного не изменился
         assert collector.favorites == initial_favorites
 
     def test_add_same_book_to_favorites_twice(self, collector):
@@ -221,9 +200,7 @@ class TestBooksCollector:
         collector.add_book_in_favorites(book_name)
         collector.add_book_in_favorites(book_name)
         
-        # Прямая проверка списка favorites
-        assert len(collector.favorites) == 1
-        assert collector.favorites[0] == book_name
+        assert collector.favorites == [book_name]
 
     def test_delete_book_from_favorites(self, collector):
         """Проверка удаления книги из избранного"""
@@ -231,33 +208,30 @@ class TestBooksCollector:
         collector.add_new_book(book_name)
         collector.add_book_in_favorites(book_name)
         
-        # Проверяем, что книга действительно в избранном
+        # Проверяем, что книга в избранном
         assert book_name in collector.favorites
         
         collector.delete_book_from_favorites(book_name)
         
-        # Проверяем, что книга удалена
         assert book_name not in collector.favorites
 
     def test_delete_nonexistent_book_from_favorites(self, collector):
         """Проверка удаления несуществующей книги из избранного"""
-        # Сохраняем начальное состояние
-        initial_favorites = collector.favorites.copy() if hasattr(collector, 'favorites') else []
+        initial_favorites = collector.favorites.copy()
         
         collector.delete_book_from_favorites('Несуществующая книга')
         
-        # Проверяем, что список не изменился
         assert collector.favorites == initial_favorites
 
+    # ===== ТЕСТЫ МЕТОДА get_list_of_favorites_books =====
     def test_get_list_of_favorites_books(self, collector):
         """Проверка получения списка избранных книг"""
         # Прямое заполнение списка избранного
-        collector.favorites = ['Книга 1', 'Книга 2']
+        test_favorites = ['Книга 1', 'Книга 2']
+        collector.favorites = test_favorites.copy()
         
         result = collector.get_list_of_favorites_books()
         
         # Проверяем, что метод возвращает правильный список
-        assert result == ['Книга 1', 'Книга 2']
-        # Проверяем, что это тот же объект или копия (зависит от реализации)
-        assert isinstance(result, list)
+        assert result == test_favorites
         
